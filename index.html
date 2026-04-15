@@ -6,701 +6,335 @@
   <title>Job Search Dashboard — David Neher</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f5f7; color: #1a1a2e; }
-    header { background: #1a1a2e; color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
-    header h1 { font-size: 20px; font-weight: 600; }
-    header .date { font-size: 13px; color: #8892a4; }
-    .container { max-width: 1300px; margin: 0 auto; padding: 24px 24px 48px; }
-    h2 { font-size: 15px; font-weight: 600; color: #1a1a2e; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .04em; }
-
-    /* Stats strip */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f5f7; color: #1a1a2e; font-size: 14px; }
+    header { background: #1a1a2e; color: white; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.3px; }
+    header .date { font-size: 12px; color: #8892a4; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 24px 32px; }
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #6b7280; margin-bottom: 14px; }
     .stats { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
-    .stat-box { background: white; border-radius: 8px; padding: 16px 20px; min-width: 130px; box-shadow: 0 1px 3px rgba(0,0,0,.07); flex: 1; }
-    .stat-box .num { font-size: 28px; font-weight: 700; color: #1a1a2e; }
-    .stat-box .label { font-size: 12px; color: #6b7280; margin-top: 2px; }
-
-    /* Pipeline grid */
-    .pipeline-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-bottom: 32px; }
-    .card { background: white; border-radius: 8px; border-left: 4px solid #9ca3af; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+    .stat-box { background: white; border-radius: 8px; padding: 14px 20px; min-width: 120px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); flex: 1; }
+    .stat-box .num { font-size: 28px; font-weight: 700; color: #1a1a2e; line-height: 1; }
+    .stat-box .label { font-size: 11px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-box.hot .num { color: #16a34a; }
+    .stat-box.active-stat .num { color: #2563eb; }
+    .stat-box.warm .num { color: #7c3aed; }
+    .pipeline-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    .card { background: white; border-radius: 8px; border-left: 4px solid #9ca3af; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
     .card.hot { border-left-color: #16a34a; }
     .card.active { border-left-color: #2563eb; }
     .card.on-hold { border-left-color: #d97706; }
-    .card.closed { border-left-color: #9ca3af; opacity: .7; }
+    .card.closed { border-left-color: #9ca3af; opacity: 0.72; }
     .card.researching { border-left-color: #7c3aed; }
-    .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
-    .card-company { font-size: 15px; font-weight: 700; }
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+    .card-company { font-size: 15px; font-weight: 700; color: #1a1a2e; }
     .card-role { font-size: 12px; color: #6b7280; margin-top: 2px; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; }
     .badge.hot { background: #dcfce7; color: #15803d; }
     .badge.active { background: #dbeafe; color: #1d4ed8; }
     .badge.on-hold { background: #fef9c3; color: #a16207; }
     .badge.closed { background: #f3f4f6; color: #6b7280; }
     .badge.researching { background: #ede9fe; color: #6d28d9; }
-    .badge.interview { background: #dcfce7; color: #15803d; }
-    .badge.outreach { background: #ede9fe; color: #6d28d9; }
-    .badge.call { background: #fef3c7; color: #b45309; }
-    .badge.rejection { background: #fee2e2; color: #b91c1c; }
-    .badge.email { background: #dbeafe; color: #1d4ed8; }
-    .badge.update { background: #f3f4f6; color: #6b7280; }
-    .badge.offer { background: #dcfce7; color: #15803d; }
-    .card-meta { font-size: 12px; color: #374151; line-height: 1.6; }
-    .card-meta .row { display: flex; gap: 6px; margin-bottom: 3px; }
-    .card-meta .muted { color: #6b7280; min-width: 72px; }
-    .comp-tag { display: inline-block; margin-top: 8px; font-size: 11px; background: #f3f4f6; color: #374151; padding: 2px 8px; border-radius: 4px; }
-
-    /* Section card */
-    .section-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 28px; }
-
-    /* Filter buttons */
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .filter-btn { padding: 4px 12px; border-radius: 16px; border: 1px solid #e5e7eb; background: white; font-size: 12px; cursor: pointer; color: #374151; transition: all .15s; }
-    .filter-btn.active, .filter-btn:hover { background: #1a1a2e; color: white; border-color: #1a1a2e; }
-
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; padding: 0 12px 8px 0; border-bottom: 1px solid #e5e7eb; }
-    td { padding: 10px 12px 10px 0; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
-    tr:last-child td { border-bottom: none; }
-    tr.hidden { display: none; }
-
-    /* Rel dot */
-    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+    .card-meta { font-size: 12px; color: #374151; margin-top: 8px; line-height: 1.6; }
+    .card-meta .lbl { font-weight: 600; color: #6b7280; }
+    .card-meta .next { color: #1d4ed8; font-weight: 600; }
+    .card-comp { display: inline-block; margin-top: 8px; font-size: 11px; background: #f3f4f6; color: #374151; padding: 2px 8px; border-radius: 4px; }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .filter-btn { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; border: 1.5px solid #e5e7eb; background: white; color: #6b7280; cursor: pointer; transition: all 0.15s; }
+    .filter-btn:hover { border-color: #2563eb; color: #2563eb; }
+    .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); overflow: hidden; }
+    thead th { background: #f9fafb; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; padding: 10px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    tbody td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #374151; vertical-align: top; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.hidden { display: none; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
     .dot.active { background: #2563eb; }
     .dot.warm { background: #16a34a; }
     .dot.on-hold { background: #d97706; }
     .dot.closed { background: #9ca3af; }
     .dot.outreach { background: #7c3aed; }
-
-    /* Tasks */
-    .tasks-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) { .tasks-col { grid-template-columns: 1fr; } }
-    .task-group h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: 10px; }
-    .task-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #374151; line-height: 1.45; }
+    .type-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+    .type-badge.interview { background: #dcfce7; color: #15803d; }
+    .type-badge.outreach { background: #ede9fe; color: #6d28d9; }
+    .type-badge.call { background: #fef3c7; color: #b45309; }
+    .type-badge.rejection { background: #fee2e2; color: #b91c1c; }
+    .type-badge.email { background: #dbeafe; color: #1d4ed8; }
+    .type-badge.update { background: #f3f4f6; color: #6b7280; }
+    .type-badge.offer { background: #fce7f3; color: #be185d; }
+    .tasks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 768px) { .tasks-grid { grid-template-columns: 1fr; } }
+    .task-group { background: white; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    .task-group-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #6b7280; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f3f4f6; }
+    .task-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f9fafb; }
     .task-item:last-child { border-bottom: none; }
-    .task-dot { width: 6px; height: 6px; border-radius: 50%; background: #2563eb; margin-top: 5px; flex-shrink: 0; }
-    .task-dot.urgent { background: #d97706; }
-    .task-dot.waiting { background: #9ca3af; }
-    .due-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-left: 4px; white-space: nowrap; }
-    .due-badge.upcoming { background: #dbeafe; color: #1d4ed8; }
-    .due-badge.today { background: #fef3c7; color: #b45309; }
-    .due-badge.overdue { background: #fee2e2; color: #b91c1c; }
+    .task-check { width: 14px; height: 14px; border: 1.5px solid #d1d5db; border-radius: 3px; flex-shrink: 0; margin-top: 2px; }
+    .task-text { font-size: 12.5px; color: #374151; line-height: 1.4; flex: 1; }
+    .task-due { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; margin-left: 4px; }
+    .task-due.overdue { background: #fee2e2; color: #b91c1c; }
+    .task-due.soon { background: #fef3c7; color: #b45309; }
+    .task-due.upcoming { background: #dbeafe; color: #1d4ed8; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Job Search Dashboard — David Neher</h1>
-  <span class="date">As of April 14, 2026</span>
+  <h1>Job Search Dashboard &mdash; David Neher</h1>
+  <span class="date">As of April 15, 2026</span>
 </header>
 
 <div class="container">
 
-  <!-- Stats strip -->
   <div class="stats">
-    <div class="stat-box"><div class="num">5</div><div class="label">Active Pipeline</div></div>
-    <div class="stat-box"><div class="num">1</div><div class="label">Offer on Table</div></div>
-    <div class="stat-box"><div class="num">2</div><div class="label">Interviews This Week</div></div>
-    <div class="stat-box"><div class="num">8</div><div class="label">Cold Applications</div></div>
-    <div class="stat-box"><div class="num">28</div><div class="label">Warm Contacts</div></div>
+    <div class="stat-box hot"><div class="num">1</div><div class="label">Offer On Table</div></div>
+    <div class="stat-box active-stat"><div class="num">8</div><div class="label">Active Pipeline</div></div>
+    <div class="stat-box"><div class="num">2</div><div class="label">Interviews Today</div></div>
+    <div class="stat-box"><div class="num">1</div><div class="label">Panel Confirmed</div></div>
+    <div class="stat-box warm"><div class="num">28</div><div class="label">Warm Contacts</div></div>
   </div>
 
-  <!-- Pipeline -->
-  <h2>Active Pipeline</h2>
-  <div class="pipeline-grid">
+  <div class="section">
+    <div class="section-title">Active Pipeline</div>
+    <div class="pipeline-grid">
 
-    <div class="card hot">
-      <div class="card-header">
-        <div>
-          <div class="card-company">Together Women's Health</div>
-          <div class="card-role">Virtual Concierge Care Lead (new role)</div>
+      <div class="card hot">
+        <div class="card-header">
+          <div><div class="card-company">Together Women's Health</div><div class="card-role">Virtual Concierge Care Lead</div></div>
+          <span class="badge hot">Offer</span>
         </div>
-        <span class="badge hot">Offer</span>
-      </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Offer confirmed — $200K base, 20% bonus, milestone bonuses up to $175K</span></div>
-        <div class="row"><span class="muted">Next:</span><span>Await Anthony's response on base flex (target: $225-250K), then counter or accept</span></div>
-        <div class="row"><span class="muted">Signal:</span><span>Suzanne checking with Anthony on base. Offer deadline end of next week.</span></div>
-      </div>
-      <div class="comp-tag">Offered: $200K base + bonus + milestone bonuses</div>
-    </div>
-
-    <div class="card hot">
-      <div class="card-header">
-        <div>
-          <div class="card-company">Qualified Health</div>
-          <div class="card-role">Principal PM</div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Offer confirmed &mdash; $200K base, 20% bonus, milestone bonuses up to $175K, EBITDA step-ups<br>
+          <span class="lbl">Next: </span><span class="next">Await Anthony's response on base flex, then counter or accept</span>
         </div>
-        <span class="badge hot">Panel Next</span>
+        <span class="card-comp">Target: $225&ndash;250K base</span>
       </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Shelly Ngo (Chief of Staff) call complete Apr 9. Advanced to panel.</span></div>
-        <div class="row"><span class="muted">Next:</span><span>Panel case presentation to 2-3 healthcare executives (75-80% weight). Arabella Macapagal coordinating scheduling — requested next week given TWH offer.</span></div>
-        <div class="row"><span class="muted">Open:</span><span>Location flexibility (Chicago vs. Palo Alto onsite)</span></div>
-      </div>
-      <div class="comp-tag">$200-250K base + 20-25% bonus + equity</div>
-    </div>
 
-    <div class="card active">
-      <div class="card-header">
-        <div>
-          <div class="card-company">The Aspen Group (TAG)</div>
-          <div class="card-role">Director, Commercial Strategy</div>
+      <div class="card hot">
+        <div class="card-header">
+          <div><div class="card-company">Qualified Health</div><div class="card-role">Principal PM</div></div>
+          <span class="badge hot">Panel Apr 24</span>
         </div>
-        <span class="badge active">Interview Wed</span>
-      </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Phone screen complete Apr 6 (Kelly Campagna).</span></div>
-        <div class="row"><span class="muted">Next:</span><span>Video interview with Teddy Hanson (SVP, Commercial Strategy) — <strong>Wed Apr 15, 10:00am CT</strong> via Teams.</span></div>
-        <div class="row"><span class="muted">Open:</span><span>Base range, in-plan model definition, people leadership component</span></div>
-      </div>
-      <div class="comp-tag">$200-235K + 25% bonus</div>
-    </div>
-
-    <div class="card active">
-      <div class="card-header">
-        <div>
-          <div class="card-company">Onos Health</div>
-          <div class="card-role">Forward-Deployed PM (first PM hire)</div>
+        <div class="card-meta">
+          <span class="lbl">Confirmed: </span>Fri Apr 24, 11:45am&ndash;12:30pm CDT &mdash; Joseph Wise, Steven Mortimer<br>
+          <span class="lbl">Prompt: </span>Clinical/operational hospital AI problem &mdash; solution + prototype + business case + deployment<br>
+          <span class="lbl">Next: </span><span class="next">Build case presentation (case-presentation-interview skill). Due Apr 22.</span>
         </div>
-        <span class="badge active">CEO Call Wed</span>
+        <span class="card-comp">$200&ndash;250K base + 20&ndash;25% bonus + equity</span>
       </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Phone screen complete Apr 10 (Josh Levitan, CPO).</span></div>
-        <div class="row"><span class="muted">Next:</span><span>CEO call with Akshay Agrawal — <strong>Wed Apr 15, 2pm CDT</strong> via Zoom. Then: exercise + presentation → meet CTO Suhaas.</span></div>
-        <div class="row"><span class="muted">Open:</span><span>Product authority scope, bonus structure, equity realism. Need $220K+ base or strong equity offset.</span></div>
-      </div>
-      <div class="comp-tag">Target: $220K+ base or $270K total</div>
-    </div>
 
-    <div class="card active">
-      <div class="card-header">
-        <div>
-          <div class="card-company">Xealth</div>
-          <div class="card-role">Director of Patient &amp; Provider Engagement</div>
+      <div class="card active">
+        <div class="card-header">
+          <div><div class="card-company">The Aspen Group (TAG)</div><div class="card-role">Director, Commercial Strategy</div></div>
+          <span class="badge active">Interview Today</span>
         </div>
-        <span class="badge active">HM Interview Soon</span>
-      </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Phone screen complete Apr 10 (Bri Bonefas). Bri replied Apr 14 — was at jury duty, speaking with hiring manager Rich Apr 15.</span></div>
-        <div class="row"><span class="muted">Next:</span><span>Hiring manager interview (45 min) → panel → in-person. Expect update this week.</span></div>
-        <div class="row"><span class="muted">Open:</span><span>Product authority, location-based comp, equity post-Samsung</span></div>
-      </div>
-      <div class="comp-tag">$200K+ base target</div>
-    </div>
-
-    <div class="card active">
-      <div class="card-header">
-        <div>
-          <div class="card-company">Arbiter AI</div>
-          <div class="card-role">Product Lead, Agentic Implementation</div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Phone screen Apr 6 (Kelly Campagna)<br>
+          <span class="lbl">Next: </span><span class="next">Video interview TODAY &mdash; Teddy Hanson (SVP), 10:00am CT via Teams. Send follow-up after.</span>
         </div>
-        <span class="badge active">Debrief Needed</span>
+        <span class="card-comp">$200&ndash;235K + 25% bonus</span>
       </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Interview today Apr 14, 12:40-1:00pm CT (Jay Carrera). Not previously in pipeline — advanced quickly from application.</span></div>
-        <div class="row"><span class="muted">Next:</span><span>Log debrief, send thank-you. Add to active pipeline once complete.</span></div>
-        <div class="row"><span class="muted">Contact:</span><span>jay.carrera@arbiter.ai</span></div>
-      </div>
-      <div class="comp-tag">TBD</div>
-    </div>
 
-    <div class="card on-hold">
-      <div class="card-header">
-        <div>
-          <div class="card-company">SonderMind</div>
-          <div class="card-role">TBD (networking stage)</div>
+      <div class="card active">
+        <div class="card-header">
+          <div><div class="card-company">Onos Health</div><div class="card-role">Forward-Deployed PM (First PM Hire)</div></div>
+          <span class="badge active">Interview Today</span>
         </div>
-        <span class="badge on-hold">Networking</span>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>CPO screen Apr 10 (Josh Levitan)<br>
+          <span class="lbl">Next: </span><span class="next">CEO call TODAY &mdash; Akshay Agrawal, 2:00&ndash;2:45pm CDT via Zoom. Key: product authority, equity realism, comp.</span>
+        </div>
+        <span class="card-comp">$220K+ base or $270K total</span>
       </div>
-      <div class="card-meta">
-        <div class="row"><span class="muted">Last:</span><span>Chris Ehlinger (warm contact) sent resume to recruiting (Olivia) + CTO Apr 7.</span></div>
-        <div class="row"><span class="muted">Next:</span><span>Follow up with Chris if no recruiter contact by Apr 16. Prioritize Daniel Benkosky intro.</span></div>
-      </div>
-      <div class="comp-tag">TBD</div>
-    </div>
 
+      <div class="card active">
+        <div class="card-header">
+          <div><div class="card-company">Arbiter AI</div><div class="card-role">Product Lead, Agentic Implementation</div></div>
+          <span class="badge active">Advanced</span>
+        </div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Recruiter screen Apr 14 (Jay Carrera) &mdash; ADVANCED. Availability submitted for HM screen.<br>
+          <span class="lbl">Next: </span><span class="next">Await HM screen scheduling (Winston). Prep when date confirmed.</span>
+        </div>
+        <span class="card-comp">$215K+ base</span>
+      </div>
+
+      <div class="card active">
+        <div class="card-header">
+          <div><div class="card-company">Xealth</div><div class="card-role">Director, Patient &amp; Provider Engagement</div></div>
+          <span class="badge active">Active</span>
+        </div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Phone screen Apr 10 (Bri Bonefas). Bri speaking with HM Rich today (Apr 15).<br>
+          <span class="lbl">Next: </span><span class="next">Await update from Bri on HM interview scheduling.</span>
+        </div>
+        <span class="card-comp">$200K+ base</span>
+      </div>
+
+      <div class="card researching">
+        <div class="card-header">
+          <div><div class="card-company">Wondr Health</div><div class="card-role">Director/GM, Wondr Advanced</div></div>
+          <span class="badge researching">New &mdash; Evaluate</span>
+        </div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Inbound via Will Granchi (Direct Recruiters) Apr 14. Resume shared with Marin Hoffman (CXO).<br>
+          <span class="lbl">About: </span>PE-backed GLP-1 + behavioral, $2M ARR, 2,100+ employer clients. P&amp;L ownership role.<br>
+          <span class="lbl">Next: </span><span class="next">Evaluate fit. Await call from Marin Hoffman (CXO). Due Apr 17.</span>
+        </div>
+        <span class="card-comp">TBD &mdash; confirm base range</span>
+      </div>
+
+      <div class="card active">
+        <div class="card-header">
+          <div><div class="card-company">Abridge</div><div class="card-role">TBD (Builder Teams / Partner Success)</div></div>
+          <span class="badge active">Warm</span>
+        </div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Reconnect call Apr 14 (Jake Stoll). Thank-you draft in Gmail.<br>
+          <span class="lbl">Next: </span><span class="next">Send Abridge thank-you. Jake reviewing internal postings &mdash; follow up ~Apr 21.</span>
+        </div>
+        <span class="card-comp">TBD</span>
+      </div>
+
+      <div class="card on-hold">
+        <div class="card-header">
+          <div><div class="card-company">SonderMind</div><div class="card-role">TBD (Networking Stage)</div></div>
+          <span class="badge on-hold">Monitoring</span>
+        </div>
+        <div class="card-meta">
+          <span class="lbl">Last: </span>Chris Ehlinger sent resume to recruiting (Olivia) + CTO Apr 7.<br>
+          <span class="lbl">Next: </span><span class="next">Follow up with Chris if no recruiter contact by Apr 16. Prioritize Daniel Benkosky intro.</span>
+        </div>
+        <span class="card-comp">TBD</span>
+      </div>
+
+    </div>
   </div>
 
-  <!-- Key Contacts -->
-  <h2>Key Contacts</h2>
-  <div class="section-card">
-    <div class="filter-row">
+  <div class="section">
+    <div class="section-title">Key Contacts</div>
+    <div class="filter-bar">
       <button class="filter-btn active" onclick="filterContacts('all', this)">All</button>
       <button class="filter-btn" onclick="filterContacts('twh', this)">TWH</button>
       <button class="filter-btn" onclick="filterContacts('qualified', this)">Qualified Health</button>
       <button class="filter-btn" onclick="filterContacts('tag', this)">TAG</button>
       <button class="filter-btn" onclick="filterContacts('onos', this)">Onos Health</button>
-      <button class="filter-btn" onclick="filterContacts('xealth', this)">Xealth</button>
       <button class="filter-btn" onclick="filterContacts('arbiter', this)">Arbiter AI</button>
+      <button class="filter-btn" onclick="filterContacts('xealth', this)">Xealth</button>
+      <button class="filter-btn" onclick="filterContacts('wondr', this)">Wondr Health</button>
+      <button class="filter-btn" onclick="filterContacts('abridge', this)">Abridge</button>
       <button class="filter-btn" onclick="filterContacts('sondermind', this)">SonderMind</button>
       <button class="filter-btn" onclick="filterContacts('recruiter', this)">Recruiters</button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Company</th>
-          <th>Relationship</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
+    <table id="contacts-table">
+      <thead><tr><th>Name</th><th>Role</th><th>Company</th><th>Status</th><th>Notes</th></tr></thead>
       <tbody>
-        <tr data-group="twh">
-          <td><span class="dot hot"></span>Anthony Ahee</td>
-          <td>CEO</td>
-          <td>Together Women's Health</td>
-          <td>Decision maker</td>
-          <td>Reviewing base flex request from Suzanne</td>
-        </tr>
-        <tr data-group="twh">
-          <td><span class="dot hot"></span>Suzanne Cooper</td>
-          <td>VP Marketing</td>
-          <td>Together Women's Health</td>
-          <td>Offer champion</td>
-          <td>Checking with Anthony on base flex. Thank-you sent Apr 9.</td>
-        </tr>
-        <tr data-group="twh">
-          <td><span class="dot hot"></span>John Starr</td>
-          <td>COO</td>
-          <td>Together Women's Health</td>
-          <td>Senior stakeholder</td>
-          <td>Part of panel / offer process</td>
-        </tr>
-        <tr data-group="twh">
-          <td><span class="dot hot"></span>Martha Schrage</td>
-          <td>CFO</td>
-          <td>Together Women's Health</td>
-          <td>Panel member</td>
-          <td></td>
-        </tr>
-        <tr data-group="qualified">
-          <td><span class="dot hot"></span>Jayvelle Thompson</td>
-          <td>Recruiter</td>
-          <td>Qualified Health</td>
-          <td>Active recruiter</td>
-          <td>Confirmed panel advancement Apr 13. CC'd Arabella for scheduling.</td>
-        </tr>
-        <tr data-group="qualified">
-          <td><span class="dot hot"></span>Arabella Macapagal</td>
-          <td>Coordinator</td>
-          <td>Qualified Health</td>
-          <td>Panel scheduler</td>
-          <td>arabella.macapagal@qualifiedhealthai.com — scheduling panel case presentation</td>
-        </tr>
-        <tr data-group="tag">
-          <td><span class="dot active"></span>Kelly Campagna</td>
-          <td>Sr. Talent Acquisition</td>
-          <td>The Aspen Group</td>
-          <td>Recruiter</td>
-          <td>Thank-you sent Apr 6. TAG interview confirmed Apr 15.</td>
-        </tr>
-        <tr data-group="tag">
-          <td><span class="dot active"></span>Teddy Hanson</td>
-          <td>SVP, Commercial Strategy</td>
-          <td>The Aspen Group</td>
-          <td>Hiring manager</td>
-          <td>Interview Wed Apr 15, 10am CT via Teams</td>
-        </tr>
-        <tr data-group="onos">
-          <td><span class="dot active"></span>Josh Levitan</td>
-          <td>Co-Founder &amp; CPO</td>
-          <td>Onos Health</td>
-          <td>Initial screen</td>
-          <td>Intro'd to Akshay after Apr 10 call. Thank-you sent.</td>
-        </tr>
-        <tr data-group="onos">
-          <td><span class="dot active"></span>Akshay Agrawal</td>
-          <td>Co-Founder &amp; CEO</td>
-          <td>Onos Health</td>
-          <td>CEO interview</td>
-          <td>Call Wed Apr 15, 2pm CDT via Zoom</td>
-        </tr>
-        <tr data-group="xealth">
-          <td><span class="dot active"></span>Bri Bonefas</td>
-          <td>Executive Business Admin</td>
-          <td>Xealth</td>
-          <td>Recruiter / coord</td>
-          <td>Was at jury duty Apr 13. Speaking with Rich (HM) Apr 15 — update expected this week.</td>
-        </tr>
-        <tr data-group="arbiter">
-          <td><span class="dot active"></span>Jay Carrera</td>
-          <td>Unknown</td>
-          <td>Arbiter AI</td>
-          <td>Recruiter / HM</td>
-          <td>jay.carrera@arbiter.ai — interview today Apr 14. Debrief needed.</td>
-        </tr>
-        <tr data-group="sondermind">
-          <td><span class="dot warm"></span>Chris Ehlinger</td>
-          <td>Head of National Payor Strategy</td>
-          <td>SonderMind</td>
-          <td>Warm champion</td>
-          <td>Sent resume to recruiting (Olivia) + CTO Apr 7. Check in by Apr 16 if no contact.</td>
-        </tr>
-        <tr data-group="recruiter">
-          <td><span class="dot outreach"></span>Will Granchi</td>
-          <td>Executive Recruiter, Digital Health</td>
-          <td>Direct Recruiters, Inc.</td>
-          <td>Inbound recruiter</td>
-          <td>Call today Apr 14, 12pm CT. wgranchi@directrecruiters.com</td>
-        </tr>
-        <tr data-group="recruiter">
-          <td><span class="dot outreach"></span>Liam Meikle</td>
-          <td>Recruiter</td>
-          <td>Cedar Recruitment</td>
-          <td>External recruiter</td>
-          <td>Presented Surgo Health (comp gap). Has broader medtech portfolio — resume sent.</td>
-        </tr>
-        <tr data-group="recruiter">
-          <td><span class="dot warm"></span>Sarah Lee</td>
-          <td>Recruiter</td>
-          <td>Lyra Health</td>
-          <td>Keep warm</td>
-          <td>Lyra closed. Keep relationship warm.</td>
-        </tr>
+        <tr data-group="twh"><td><span class="dot active"></span>John Starr</td><td>COO</td><td>Together Women's Health</td><td>Active pipeline</td><td>Offer conversation ongoing</td></tr>
+        <tr data-group="twh"><td><span class="dot active"></span>Anthony Ahee</td><td>CEO</td><td>Together Women's Health</td><td>Active pipeline</td><td>Decision-maker on base flex</td></tr>
+        <tr data-group="twh"><td><span class="dot active"></span>Suzanne Cooper</td><td>VP Marketing</td><td>Together Women's Health</td><td>Active pipeline</td><td>Main contact &mdash; checking on base flex with Anthony</td></tr>
+        <tr data-group="twh"><td><span class="dot active"></span>Martha Schrage</td><td>CFO</td><td>Together Women's Health</td><td>Active pipeline</td><td>Part of offer conversation</td></tr>
+        <tr data-group="qualified"><td><span class="dot active"></span>Jayvelle Thompson</td><td>Recruiter</td><td>Qualified Health</td><td>Active pipeline</td><td>Panel confirmed Apr 24</td></tr>
+        <tr data-group="qualified"><td><span class="dot active"></span>Arabella Macapagal</td><td>Scheduling Coordinator</td><td>Qualified Health</td><td>Active pipeline</td><td>Confirmed panel: Apr 24, 11:45am CDT. Interviewers: Joseph Wise, Steven Mortimer.</td></tr>
+        <tr data-group="tag"><td><span class="dot active"></span>Teddy Hanson</td><td>SVP, Commercial Strategy</td><td>The Aspen Group</td><td>Active pipeline</td><td>Video interview TODAY 10am CT</td></tr>
+        <tr data-group="onos"><td><span class="dot active"></span>Akshay Agrawal</td><td>Co-Founder &amp; CEO</td><td>Onos Health</td><td>Active pipeline</td><td>CEO call TODAY 2pm CDT</td></tr>
+        <tr data-group="onos"><td><span class="dot active"></span>Josh Levitan</td><td>Co-Founder &amp; CPO</td><td>Onos Health</td><td>Active pipeline</td><td>Initial screen Apr 10 &mdash; intro'd Akshay</td></tr>
+        <tr data-group="arbiter"><td><span class="dot active"></span>Jay Carrera</td><td>Recruiter</td><td>Arbiter AI</td><td>Active pipeline</td><td>Advanced to HM screen &mdash; availability submitted</td></tr>
+        <tr data-group="xealth"><td><span class="dot active"></span>Bri Bonefas</td><td>Executive Business Admin</td><td>Xealth</td><td>Active pipeline</td><td>Speaking with HM Rich today</td></tr>
+        <tr data-group="wondr"><td><span class="dot outreach"></span>Will Granchi</td><td>Executive Recruiter (Direct Recruiters)</td><td>Wondr Health</td><td>Inbound</td><td>Resume shared with Marin Hoffman (CXO) Apr 14</td></tr>
+        <tr data-group="abridge"><td><span class="dot warm"></span>Jake Stoll</td><td>Sr. Director, National Accounts</td><td>Abridge</td><td>Warm reconnect</td><td>Reconnect Apr 14 &mdash; reviewing internal postings</td></tr>
+        <tr data-group="sondermind"><td><span class="dot warm"></span>Chris Ehlinger</td><td>Head of National Payor Strategy</td><td>SonderMind</td><td>Warm contact</td><td>Sent resume to recruiting + CTO Apr 7. Benkosky intro pending.</td></tr>
+        <tr data-group="recruiter"><td><span class="dot outreach"></span>Yair Saperstein</td><td>MD MPH, CEO &amp; Co-Founder</td><td>AvoMD</td><td>Networking</td><td>Call Apr 20 &mdash; may have roles open. Reply to LinkedIn messages.</td></tr>
+        <tr data-group="recruiter"><td><span class="dot outreach"></span>Liam Meikle</td><td>Recruiter</td><td>Cedar Recruitment</td><td>External recruiter</td><td>Surgo comp gap; surfacing other medtech opps ($230&ndash;250K base). Resume sent Apr 13.</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Recent Outreaches -->
-  <h2>Recent Outreaches</h2>
-  <div class="section-card">
-    <div class="filter-row">
+  <div class="section">
+    <div class="section-title">Recent Activity (Last 2 Weeks)</div>
+    <div class="filter-bar">
       <button class="filter-btn active" onclick="filterOutreach('all', this)">All</button>
       <button class="filter-btn" onclick="filterOutreach('interview', this)">Interviews</button>
+      <button class="filter-btn" onclick="filterOutreach('call', this)">Calls</button>
       <button class="filter-btn" onclick="filterOutreach('outreach', this)">Outreach</button>
-      <button class="filter-btn" onclick="filterOutreach('call', this)">Calls / Updates</button>
+      <button class="filter-btn" onclick="filterOutreach('update', this)">Updates</button>
       <button class="filter-btn" onclick="filterOutreach('offer', this)">Offers</button>
+      <button class="filter-btn" onclick="filterOutreach('rejection', this)">Rejections</button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Person(s)</th>
-          <th>Company</th>
-          <th>Type</th>
-          <th>Notes</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+    <table id="outreach-table">
+      <thead><tr><th>Date</th><th>Person(s)</th><th>Company</th><th>Type</th><th>Notes</th><th>Status</th></tr></thead>
       <tbody>
-        <tr data-type="interview">
-          <td>Apr 14</td>
-          <td>Jay Carrera</td>
-          <td>Arbiter AI</td>
-          <td><span class="badge interview">Interview</span></td>
-          <td>Product Lead, Agentic Implementation screen — 12:40-1pm CT</td>
-          <td>Debrief needed</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>Mary Reynolds</td>
-          <td>Included Health</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>mary.reynolds@includedhealth.com</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>Joel Campbell</td>
-          <td>Wayspring</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>joel.campbell@wayspring.com</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>Sameer Bhagavatula</td>
-          <td>Brightline</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>sameer.bhagavatula@hellobrightline.com. Also: LinkedIn needed for Mahssa Mostajabi.</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>John Mooney (CPO), Pamela Yau</td>
-          <td>Talkspace</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>CPO + PM contact. LinkedIn InMail needed for Jonatan Meczyk.</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>Jennifer Rabiner (CPO)</td>
-          <td>Pearl Health</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>jennifer.rabiner@pearlhealth.com</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>Adrian Vera (CTO)</td>
-          <td>Osmind</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>adrian.vera@osmind.org</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>Anand Subramani (VP Product)</td>
-          <td>Rula</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>anand.subramani@rula.com</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 14</td>
-          <td>John Zhao (CEO)</td>
-          <td>Blossom Health</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>john@joinblossomhealth.com</td>
-          <td>Sent — follow up Apr 21</td>
-        </tr>
-        <tr data-type="call">
-          <td>Apr 13</td>
-          <td>Liam Meikle</td>
-          <td>Cedar Recruitment / Surgo Health</td>
-          <td><span class="badge call">Call</span></td>
-          <td>Surgo Health comp gap ($220K total vs. $230-250K base target). Resume sent. Liam surfacing other medtech roles.</td>
-          <td>Not pursuing Surgo</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 13</td>
-          <td>Jeremy Petrosino, Olivia Boyce</td>
-          <td>Array Behavioral Care</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>jeremy.petrosino@arraybc.com, olivia.boyce@arraybc.com</td>
-          <td>Sent — follow up pending</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 13</td>
-          <td>Leanna Escobar, Matthew Karges, Lauren Mills</td>
-          <td>Valera Health</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>3 contacts at Valera Health</td>
-          <td>Sent — follow up pending</td>
-        </tr>
-        <tr data-type="offer">
-          <td>Apr 9</td>
-          <td>Suzanne Cooper</td>
-          <td>Together Women's Health</td>
-          <td><span class="badge offer">Offer</span></td>
-          <td>$200K base, 20% bonus, milestone bonuses up to $175K, EBITDA step-ups. Asking Anthony for base flex to $225-250K.</td>
-          <td>Awaiting base flex response</td>
-        </tr>
-        <tr data-type="call">
-          <td>Apr 10</td>
-          <td>Bri Bonefas</td>
-          <td>Xealth</td>
-          <td><span class="badge call">Update</span></td>
-          <td>Apr 14: Bri was at jury duty, speaking with Rich (HM) Apr 15. Expect update end of week.</td>
-          <td>HM round pending</td>
-        </tr>
-        <tr data-type="call">
-          <td>Apr 10</td>
-          <td>Josh Levitan</td>
-          <td>Onos Health</td>
-          <td><span class="badge call">Call</span></td>
-          <td>Initial CPO screen. Intro'd to CEO Akshay for Apr 15 call. Comp flagged: $270K total target stated.</td>
-          <td>CEO call Apr 15</td>
-        </tr>
-        <tr data-type="outreach">
-          <td>Apr 10</td>
-          <td>Ginny Mineo</td>
-          <td>Spring Health</td>
-          <td><span class="badge outreach">Outreach</span></td>
-          <td>ginny.mineo@springhealth.com. Follow up due Apr 17.</td>
-          <td>Awaiting reply</td>
-        </tr>
-        <tr data-type="interview">
-          <td>Apr 9</td>
-          <td>Shelly Ngo (Chief of Staff)</td>
-          <td>Qualified Health</td>
-          <td><span class="badge interview">Interview</span></td>
-          <td>Product ownership confirmed. Panel case presentation next. Arabella scheduling.</td>
-          <td>Panel scheduling</td>
-        </tr>
+        <tr data-type="interview"><td>Apr 15</td><td>Teddy Hanson</td><td>The Aspen Group</td><td><span class="type-badge interview">Interview</span></td><td>SVP Commercial Strategy &mdash; video interview 10am CT via Teams</td><td>Today</td></tr>
+        <tr data-type="interview"><td>Apr 15</td><td>Akshay Agrawal</td><td>Onos Health</td><td><span class="type-badge interview">Interview</span></td><td>CEO call 2pm CDT via Zoom. Product authority, comp, equity.</td><td>Today</td></tr>
+        <tr data-type="interview"><td>Apr 24</td><td>Joseph Wise, Steven Mortimer</td><td>Qualified Health</td><td><span class="type-badge interview">Panel</span></td><td>Case presentation &mdash; 45 min via Google Meet. Clinical AI problem + prototype.</td><td>Confirmed</td></tr>
+        <tr data-type="interview"><td>Apr 14</td><td>Jay Carrera</td><td>Arbiter AI</td><td><span class="type-badge interview">Interview</span></td><td>Recruiter screen &mdash; ADVANCED. Availability submitted for HM screen (Winston).</td><td>Advanced &#10003;</td></tr>
+        <tr data-type="call"><td>Apr 14</td><td>Jake Stoll</td><td>Abridge</td><td><span class="type-badge call">Call</span></td><td>Reconnect &mdash; Jake reviewing internal postings. Thank-you draft in Gmail.</td><td>Follow up ~Apr 21</td></tr>
+        <tr data-type="call"><td>Apr 14</td><td>Will Granchi</td><td>Wondr Health</td><td><span class="type-badge call">Call</span></td><td>Inbound via Direct Recruiters. Wondr Advanced GM role. Resume sent to Marin Hoffman (CXO).</td><td>Awaiting intro</td></tr>
+        <tr data-type="call"><td>Apr 14</td><td>Pi Zonooz</td><td>Nimblemind.ai</td><td><span class="type-badge call">Call</span></td><td>Kellogg Connect. Intro to Chris at Social RX pending.</td><td>Complete</td></tr>
+        <tr data-type="update"><td>Apr 14</td><td>Bri Bonefas</td><td>Xealth</td><td><span class="type-badge update">Update</span></td><td>Jury duty Apr 13. Speaking with HM Rich today. Next steps expected shortly.</td><td>Awaiting update</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>John Mooney (CPO), Pamela Yau</td><td>Talkspace</td><td><span class="type-badge outreach">Outreach</span></td><td>CPO + PM outreach sent. LinkedIn InMail to Jonatan Meczyk also pending.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>Jennifer Rabiner (CPO)</td><td>Pearl Health</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect sent. Follow up Apr 21.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>Adrian Vera (CTO)</td><td>Osmind</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect sent. Follow up Apr 21.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>Anand Subramani (VP Product)</td><td>Rula</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect sent. Follow up Apr 21.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>John Zhao (CEO)</td><td>Blossom Health</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect sent. Follow up Apr 21.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>Mary Reynolds</td><td>Included Health</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect sent. Follow up Apr 21.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>Joel Campbell</td><td>Wayspring</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect sent. Follow up Apr 21.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 14</td><td>Sameer Bhagavatula</td><td>Brightline</td><td><span class="type-badge outreach">Outreach</span></td><td>Email sent. Mahssa Mostajabi: reach out via LinkedIn.</td><td>Sent</td></tr>
+        <tr data-type="call"><td>Apr 13</td><td>Liam Meikle</td><td>Surgo Health</td><td><span class="type-badge call">Call</span></td><td>Comp gap &mdash; not pursuing Surgo. Liam surfacing other medtech roles.</td><td>Resume sent</td></tr>
+        <tr data-type="outreach"><td>Apr 13</td><td>Jeremy Petrosino, Olivia Boyce</td><td>Array Behavioral Care</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect emails sent.</td><td>Sent</td></tr>
+        <tr data-type="outreach"><td>Apr 13</td><td>Leanna Escobar, Matthew Karges, Lauren Mills</td><td>Valera Health</td><td><span class="type-badge outreach">Outreach</span></td><td>15-min connect emails sent.</td><td>Sent</td></tr>
+        <tr data-type="rejection"><td>Apr 10</td><td>Wes Donohoe, Kristen Stallings</td><td>Eleanor Health</td><td><span class="type-badge rejection">Rejection</span></td><td>Rejected after first round. Rejection emails sent. Closed.</td><td>Closed</td></tr>
+        <tr data-type="offer"><td>Apr 9</td><td>Suzanne Cooper</td><td>Together Women's Health</td><td><span class="type-badge offer">Offer</span></td><td>$200K base, 20% bonus, up to $175K milestone bonuses. Checking on base flex with Anthony.</td><td>Pending response</td></tr>
+        <tr data-type="interview"><td>Apr 9</td><td>Shelly Ngo (CoS)</td><td>Qualified Health</td><td><span class="type-badge interview">Interview</span></td><td>CoS screen complete. Product ownership confirmed. Advanced to panel.</td><td>Advanced &#10003;</td></tr>
+        <tr data-type="rejection"><td>Apr 8</td><td>George Uehling (VP Product)</td><td>Ritten</td><td><span class="type-badge rejection">Closed</span></td><td>Mutual interest; comp ceiling $180K &mdash; dealbreaker. George moved to warm contacts.</td><td>Closed</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Active Tasks -->
-  <h2>Active Tasks</h2>
-  <div class="section-card">
-    <div class="tasks-col">
-      <div class="task-group">
-        <h3>This Week / Urgent</h3>
+  <div class="section">
+    <div class="section-title">Active Tasks</div>
+    <div class="tasks-grid">
 
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>⚠️ Debrief: Arbiter AI (Jay Carrera)</strong> — Log debrief &amp; send thank-you after today's interview <span class="due-badge today">Today</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Prep: TAG — Teddy Hanson interview</strong> — Video interview Wed Apr 15, 10am CT via Teams <span class="due-badge today">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Prep: Onos Health — Akshay Agrawal CEO call</strong> — Wed Apr 15, 2pm CDT via Zoom <span class="due-badge today">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Prep: Coach Pri second call</strong> — Apr 15, 12pm CT. Review materials she sent. <span class="due-badge today">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Woebot Health — LinkedIn InMail to Joseph Gallagher (VP Product)</strong> <span class="due-badge today">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Apply: Talkiatry — Director PM, Consumer Products</strong> — talkiatry.com/jobs <span class="due-badge today">Apr 16</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>SonderMind: follow up with Chris Ehlinger</strong> — If no recruiter contact (Olivia) by Apr 16; prioritize Benkosky intro <span class="due-badge upcoming">Apr 16</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Follow up: Two Chairs (2nd touch)</strong> — Kyle McDermott, Sonali Sheel, Alfonso Castillo <span class="due-badge upcoming">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Follow up: Alma (2nd touch)</strong> — Rahul Ajmera, Libby Perold, Stephanie Schatz <span class="due-badge upcoming">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Follow up: Thyme Care (2nd touch)</strong> — Scott Voigt, Rob Rodkey, Peter McMullan <span class="due-badge upcoming">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Follow up: Modern Health (2nd touch)</strong> — Julia Corcoran <span class="due-badge upcoming">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Follow up: Octave (2nd touch)</strong> — Kathleen Mullaney, Raul Estrada <span class="due-badge upcoming">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>Respond: Yair Saperstein LinkedIn messages</strong> — Confirm Apr 20 call timing <span class="due-badge upcoming">Apr 14</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot urgent"></div>
-          <div><strong>TAG: send thank-you to Teddy Hanson</strong> — After Apr 15 interview <span class="due-badge upcoming">Apr 15</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Follow up: Headspace (2nd check)</strong> — Payton Raffa, Sarah Kunkle, Terence Lim, Ranjitha Kurra, Kelly Powers <span class="due-badge upcoming">Apr 14</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Follow up: Ensora Health (2nd check)</strong> — Catherine Baker, Robin Fisher, Andrew Clement, Yvan Charpentier <span class="due-badge upcoming">Apr 14</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Follow up: Spring Health outreach</strong> — Ginny Mineo <span class="due-badge upcoming">Apr 17</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Follow up: Devoted Health application</strong> — Product Leader role. Applied Apr 10. <span class="due-badge upcoming">Apr 17</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Follow up: Grow Therapy application</strong> — Ping Manoj/Prabha Dublish <span class="due-badge upcoming">Apr 17</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Review: Tonal application</strong> — Director, PM - Healthcare Platform. Applied Apr 11. <span class="due-badge upcoming">Apr 18</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot"></div>
-          <div><strong>Review: McKinsey application</strong> — PM I, Life Sciences. Assess comp fit before investing prep time. <span class="due-badge upcoming">Apr 19</span></div>
-        </div>
+      <div class="task-group">
+        <div class="task-group-title">&#128293; This Week &mdash; Immediate</div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>TAG &mdash; Teddy Hanson video interview</strong> 10am CT via Teams <span class="task-due soon">Today</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Onos Health &mdash; Akshay Agrawal CEO call</strong> 2pm CDT via Zoom <span class="task-due soon">Today</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Send TAG thank-you to Teddy Hanson</strong> after interview <span class="task-due soon">Today</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Send Abridge thank-you (Jake Stoll)</strong> &mdash; draft in Gmail <span class="task-due soon">Today</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Respond: Yair Saperstein LinkedIn messages</strong> &mdash; confirm Apr 20 call <span class="task-due overdue">Overdue</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Woebot Health &mdash; LinkedIn InMail to Joseph Gallagher (VP Product)</strong> <span class="task-due soon">Apr 15</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Two Chairs 2nd touch</strong> &mdash; Kyle McDermott, Sonali Sheel, Alfonso Castillo <span class="task-due soon">Apr 15</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Alma, Thyme Care, Modern Health, Octave 2nd touch</strong> <span class="task-due soon">Apr 15</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>SonderMind &mdash; follow up with Chris Ehlinger</strong> if no recruiter contact <span class="task-due upcoming">Apr 16</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Talkiatry &mdash; Apply to Director PM, Consumer Products</strong> (talkiatry.com/jobs) <span class="task-due upcoming">Apr 16</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Wondr Health &mdash; evaluate fit, await Marin Hoffman (CXO) contact</strong> <span class="task-due upcoming">Apr 17</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Follow up: Spring Health (Ginny Mineo)</strong> <span class="task-due upcoming">Apr 17</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Follow up: Grow Therapy application</strong> &mdash; ping Prabha Dublish <span class="task-due upcoming">Apr 17</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Tonal application review</strong> &mdash; track for follow-up <span class="task-due upcoming">Apr 18</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Prep: Yair Saperstein (AvoMD) call &mdash; Apr 20</strong> <span class="task-due upcoming">Apr 19</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>McKinsey application &mdash; assess fit vs. comp target</strong> <span class="task-due upcoming">Apr 19</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Prep: Qualified Health panel case presentation</strong> &mdash; use case-presentation-interview skill <span class="task-due upcoming">Apr 22</span></div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text">&#128205; <strong>Miami trip Apr 16&ndash;19</strong> &mdash; UA 1620 ORD&#8594;MIA 10:45am. Kimpton Surfcomber. Return Apr 19 UA 1642. No job calls.</div></div>
       </div>
 
       <div class="task-group">
-        <h3>Waiting On / Watching</h3>
-
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>TWH Offer</strong> — Await Anthony's response on base flex ($225-250K target). Deadline end of next week.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Qualified Health — Panel scheduling</strong> — Arabella Macapagal coordinating. Requested next week given TWH offer timeline.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Xealth — HM round</strong> — Bri speaking with Rich (HM) Apr 15. Expect update end of week.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Prep: Yair Saperstein (AvoMD) call</strong> — Apr 20, 12:30pm CT. Research brief saved in Working Files. <span class="due-badge upcoming">Apr 19</span></div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Talkspace outreach</strong> — John Mooney (CPO). Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Pearl Health outreach</strong> — Jennifer Rabiner (CPO). Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Osmind outreach</strong> — Adrian Vera (CTO). Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Rula outreach</strong> — Anand Subramani (VP Product). Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Blossom Health outreach</strong> — John Zhao (CEO). Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Included Health outreach</strong> — Mary Reynolds. Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Wayspring outreach</strong> — Joel Campbell. Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Brightline outreach</strong> — Sameer Bhagavatula + LinkedIn for Mahssa Mostajabi. Due Apr 21.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Collectly application</strong> — Applied Apr 13. Due Apr 20.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Follow up: Hippocratic AI application</strong> — Lead PM (Payor). Applied Apr 13. Due Apr 20.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Track: Arbiter AI</strong> — Add to active pipeline after debrief.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Track: OpenLoop Health application</strong> — Staff PM, Ashby Apr 13. Due Apr 20.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Track: Hinge Health application</strong> — Senior PM, Vertical Programs. Due Apr 20.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Underdog.io profile</strong> — Decide whether to re-activate (expired 8+ weeks).</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Note: Miami trip Apr 16-19</strong> — No job calls during trip. Yair Saperstein call is Apr 20 after return.</div>
-        </div>
-        <div class="task-item">
-          <div class="task-dot waiting"></div>
-          <div><strong>Keep warm: Ben Harcowitz (SimplePractice)</strong> — Next touch: May 9.</div>
-        </div>
+        <div class="task-group-title">&#128064; Watching / Waiting On</div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>TWH &mdash; await Anthony's response on base flex</strong>. Counter or accept once received.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Arbiter AI &mdash; await HM screen scheduling (Winston)</strong>. Availability submitted Apr 14.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Xealth &mdash; await HM interview scheduling</strong>. Bri speaking with Rich today.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Abridge &mdash; await Jake Stoll posting review/intro</strong>. Follow up ~Apr 21.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>SonderMind &mdash; Daniel Benkosky intro pending</strong> via Chris Ehlinger.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Qualified Health &mdash; panel Apr 24</strong>. Build prep this week.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Apr 21 follow-up batch</strong>: Included Health, Wayspring, Brightline, Talkspace, Pearl Health, Osmind, Rula, Blossom Health &mdash; all sent Apr 14.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Apr 20 application checks</strong>: Collectly, Hippocratic AI, OpenLoop, Hinge Health &mdash; all applied Apr 13.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Array Behavioral Care, Valera Health</strong> &mdash; outreach sent Apr 13. Check for replies.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Jimini Health (Sahil Sud, Mike Fantini)</strong> &mdash; outreach sent Apr 13. Check for replies. Due Apr 20.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Talkspace LinkedIn InMail</strong> &mdash; Jonatan Meczyk (Director PM). Manual outreach needed.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Liam (Cedar Recruitment)</strong> &mdash; surfacing medtech roles at $230&ndash;250K base. Monitor.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Grow Therapy rejection email</strong> &mdash; decide whether to send gracious note to Manoj/Prabha.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Underdog.io profile expired</strong> &mdash; decide whether to re-activate.</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-text"><strong>Latent Health &mdash; check LinkedIn for replies</strong> from Yiyang Zhang + Maryana Kessel.</div></div>
       </div>
+
     </div>
   </div>
 
@@ -708,23 +342,31 @@
 
 <script>
   function filterContacts(group, btn) {
-    document.querySelectorAll('.filter-row button').forEach(b => {
-      if (b.closest('.section-card') === btn.closest('.section-card')) b.classList.remove('active');
+    document.querySelectorAll('#contacts-table tbody tr').forEach(function(row) {
+      if (group === 'all' || row.dataset.group === group) {
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    });
+    document.querySelectorAll('#contacts-table').forEach(function(tbl) {
+      tbl.closest('.section').querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
     });
     btn.classList.add('active');
-    document.querySelectorAll('tr[data-group]').forEach(row => {
-      row.classList.toggle('hidden', group !== 'all' && row.dataset.group !== group);
-    });
   }
 
   function filterOutreach(type, btn) {
-    document.querySelectorAll('.filter-row button').forEach(b => {
-      if (b.closest('.section-card') === btn.closest('.section-card')) b.classList.remove('active');
+    document.querySelectorAll('#outreach-table tbody tr').forEach(function(row) {
+      if (type === 'all' || row.dataset.type === type) {
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    });
+    document.querySelectorAll('#outreach-table').forEach(function(tbl) {
+      tbl.closest('.section').querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
     });
     btn.classList.add('active');
-    document.querySelectorAll('tr[data-type]').forEach(row => {
-      row.classList.toggle('hidden', type !== 'all' && row.dataset.type !== type);
-    });
   }
 </script>
 
